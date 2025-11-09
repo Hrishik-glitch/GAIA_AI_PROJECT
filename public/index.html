@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>GAIA Link — Demo (Updated)</title>
+<style>
+  :root{
+    --bg:#05111a; --panel:#0c1622; --muted:#9fb7d6; --ink:#dbeeff;
+    --good:#16c77a; --warn:#ffb55a; --bad:#ff6b6b; --glass:rgba(255,255,255,0.03);
+    --accent:#3aa7ff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(180deg,#02111a,#021822);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,Arial,sans-serif}
+  .wrap{max-width:1150px;margin:20px auto;padding:20px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+  .brand{display:flex;gap:12px;align-items:center}
+  .logo{width:44px;height:44px;border-radius:50%;background:conic-gradient(#2dd6ff, #24e09a 40%, #a3b6ff 80%);box-shadow:0 6px 26px rgba(0,150,255,0.12) inset}
+  h1{margin:0;font-size:18px}
+  .muted{color:var(--muted);font-size:13px}
+  nav{display:flex;gap:8px}
+  .tab{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 12px;border-radius:10px;cursor:pointer;color:var(--muted)}
+  .tab.active{border-color:var(--accent);box-shadow:0 6px 18px rgba(58,167,255,0.06);color:var(--ink)}
+  .grid{display:grid;grid-template-columns:1fr 520px;gap:16px}
+  .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.04);padding:14px;border-radius:14px;overflow:hidden}
+  label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+  .controls{display:grid;gap:10px}
+  .row{display:flex;gap:10px;align-items:center}
+  input[type="range"]{width:100%}
+  .btn{background:linear-gradient(180deg,#1f8eff,#0f63c0);border:0;color:white;padding:8px 12px;border-radius:10px;cursor:pointer}
+  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04)}
+  .small{font-size:13px;padding:6px 10px;border-radius:8px}
+  canvas{width:100%;height:340px;border-radius:10px;display:block}
+  .toggle{display:flex;gap:8px;padding:8px;background:var(--glass);border-radius:10px}
+  .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.02);font-size:13px}
+  .score{font-weight:700;font-size:22px}
+  .muted-block{color:var(--muted);font-size:13px}
+  .form-row{display:flex;gap:8px}
+  input[type="text"], select, textarea{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px;border-radius:8px;color:var(--ink);flex:1}
+  textarea{min-height:64px;resize:vertical}
+  .flex{display:flex;gap:8px;align-items:center}
+  .hidden{display:none}
+  .subtabs{display:flex;gap:6px;margin:8px 0 10px}
+  .subtab{padding:6px 10px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.03);cursor:pointer;color:var(--muted);font-size:13px}
+  .subtab.active{background:rgba(58,167,255,0.06);border-color:var(--accent);color:var(--ink)}
+  .narrow{width:150px}
+  .footer{margin-top:14px;color:var(--muted);font-size:12px;text-align:center}
+  @media (max-width:1100px){ .grid{grid-template-columns:1fr} .card canvas{height:260px} }
+  /* small gauge */
+  .gauge{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent)}
+  .gauge-arc{width:180px;height:90px}
+  .grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+  gap: 20px;
+}
+header { flex-wrap: wrap; }
+.card { padding: 16px; border-radius: 16px; }
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo" aria-hidden="true"></div>
+      <div>
+        <h1>GAIA Link — Demo</h1>
+        <div class="muted">Simulation Hub · SymbioSphere · Nexus — simplified demo</div>
+      </div>
+    </div>
+    <nav>
+      <button class="tab active" data-tab="link">GAIA Link</button>
+      <button class="tab" data-tab="symbio">SymbioSphere</button>
+      <button class="tab" data-tab="nexus">Nexus</button>
+      <button class="tab ghost" id="resetBtn">Reset</button>
+    </nav>
+  </header>
+
+  <!-- MAIN GRID -->
+  <main class="grid">
+    <!-- LEFT: Controls & forms -->
+    <section class="card" id="link">
+      <h3 style="margin-top:0">GAIA Link — Simulation Hub</h3>
+      <div class="muted">Choose a simulation method, tweak levers, or let GAIA suggest optimal mix. Results update live and can be used by Nexus and SymbioSphere.</div>
+
+      <div style="margin-top:12px" class="subtabs">
+        <div class="subtab active" data-method="manual">Manual Sliders</div>
+        <div class="subtab" data-method="preset">Preset Scenarios</div>
+        <div class="subtab" data-method="mc">Monte-Carlo</div>
+        <div class="subtab" data-method="ai">AI Suggestion</div>
+      </div>
+
+      <!-- Manual sliders -->
+      <div id="method-manual" class="method-block">
+        <div class="controls">
+          <div>
+            <label>CO₂ Emissions index</label>
+            <input id="co2" type="range" min="0" max="100" value="40" />
+            <div class="muted-block">Higher = more emissions.</div>
+          </div>
+
+          <div class="form-row" style="gap:10px">
+            <div style="flex:1">
+              <label>Deforestation pressure</label>
+              <input id="def" type="range" min="0" max="100" value="20" />
+            </div>
+            <div style="flex:1">
+              <label>Renewables adoption</label>
+              <input id="ren" type="range" min="0" max="100" value="55" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div style="flex:1">
+              <label>Pollution control & regulation</label>
+              <input id="pol" type="range" min="0" max="100" value="35" />
+            </div>
+            <div style="width:170px">
+              <label>Population growth</label>
+              <input id="pop" type="range" min="-20" max="80" value="20" />
+            </div>
+          </div>
+
+          <div class="divider" style="height:1px;background:rgba(255,255,255,0.03);margin:6px 0"></div>
+
+          <label style="margin-bottom:6px">Advanced interventions (toggle + intensity)</label>
+          <div class="toggle" style="flex-wrap:wrap">
+            <div style="min-width:220px">
+              <input type="checkbox" id="airweaver"/> <label for="airweaver" style="display:inline;color:var(--muted)">AirWeaver Towers</label>
+              <div style="display:flex;gap:6px;margin-top:6px"><input id="airweaver_int" type="range" min="0" max="100" value="40"/></div>
+            </div>
+            <div style="min-width:220px">
+              <input type="checkbox" id="algae"/> <label for="algae" style="display:inline;color:var(--muted)">Algae Seeding</label>
+              <div style="display:flex;gap:6px;margin-top:6px"><input id="algae_int" type="range" min="0" max="100" value="30"/></div>
+            </div>
+            <div style="min-width:220px">
+              <input type="checkbox" id="cryo"/> <label for="cryo" style="display:inline;color:var(--muted)">CryoSentinel/Reflective Cooling</label>
+              <div style="display:flex;gap:6px;margin-top:6px"><input id="cryo_int" type="range" min="0" max="100" value="20"/></div>
+            </div>
+            <div style="min-width:220px">
+              <input type="checkbox" id="biosynth"/> <label for="biosynth" style="display:inline;color:var(--muted)">BioSynth Loop Pods</label>
+              <div style="display:flex;gap:6px;margin-top:6px"><input id="biosynth_int" type="range" min="0" max="100" value="10"/></div>
+            </div>
+            <div style="min-width:220px">
+              <input type="checkbox" id="reforest"/> <label for="reforest" style="display:inline;color:var(--muted)">Reforestation Campaign</label>
+              <div style="display:flex;gap:6px;margin-top:6px"><input id="reforest_int" type="range" min="0" max="100" value="30"/></div>
+            </div>
+            <div style="min-width:220px">
+              <input type="checkbox" id="ccapture"/> <label for="ccapture" style="display:inline;color:var(--muted)">Carbon Capture</label>
+              <div style="display:flex;gap:6px;margin-top:6px"><input id="ccapture_int" type="range" min="0" max="100" value="25"/></div>
+            </div>
+            <div style="min-width:220px">
+              <input type="checkbox" id="transport"/> <label for="transport" style="display:inline;color:var(--muted)">Transport Electrification</label>
+              <div style="display:flex;gap:6px;margin-top:6px"><input id="transport_int" type="range" min="0" max="100" value="40"/></div>
+            </div>
+            <div style="min-width:220px">
+              <input type="checkbox" id="urbangreen"/> <label for="urbangreen" style="display:inline;color:var(--muted)">Urban Greening (roofs)</label>
+              <div style="display:flex;gap:6px;margin-top:6px"><input id="urbangreen_int" type="range" min="0" max="100" value="30"/></div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
+            <button class="btn" id="simulateBtn">Simulate Now</button>
+            <button class="btn ghost" id="saveScenario">Save Scenario</button>
+            <div style="margin-left:auto" class="pill"><span id="lastMethod">Method: Manual</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRESET block -->
+      <div id="method-preset" class="method-block hidden">
+        <label>Choose preset</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="small" data-preset="business">Business as Usual</button>
+          <button class="small" data-preset="greenrush">Green Rush (fast renewables)</button>
+          <button class="small" data-preset="radical">Radical Restoration (high bio interventions)</button>
+          <button class="small" data-preset="tech-fix">Tech Fix (high towers & capture)</button>
+        </div>
+        <div class="muted-block" style="margin-top:8px">Presets set all levers to a recommended configuration. You can tweak after selecting.</div>
+      </div>
+
+      <!-- MONTE CARLO -->
+      <div id="method-mc" class="method-block hidden">
+        <label>Monte-Carlo samples</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="mcRuns" type="number" min="10" max="200" value="40" style="width:90px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:var(--ink)"/>
+          <button class="btn" id="runMC">Run MC</button>
+        </div>
+        <div class="muted-block" style="margin-top:8px">This runs randomized interventions to show distribution of outcomes.</div>
+      </div>
+
+      <!-- AI Suggestion -->
+      <div id="method-ai" class="method-block hidden">
+        <label>AI Suggestion (heuristic)</label>
+        <div class="muted-block">Heuristic suggests a balanced mix. (Demo: deterministic advice based on weak rules.)</div>
+        <div style="margin-top:8px">
+          <button class="btn" id="aiSuggest">Suggest Best Mix</button>
+        </div>
+      </div>
+
+      <div style="margin-top:12px;display:flex;gap:12px;align-items:center">
+        <div class="gauge">
+          <canvas id="miniGauge" class="gauge-arc" width="180" height="90"></canvas>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div class="score" id="symIndex">—</div>
+            <div class="muted-block">Symbiosis Index</div>
+          </div>
+        </div>
+        <div style="flex:1">
+          <div class="muted-block">Last simulation summary</div>
+          <div style="margin-top:6px">
+            <div id="simSummary" class="pill">Run a simulation to see a short summary.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: Visual / Earth preview (replaced with NASA/GIBS imagery) -->
+    <aside class="card">
+      <h3 style="margin-top:0">Visual Preview — “Future Earth”</h3>
+      <div class="muted">Live NASA satellite view of Earth and predictive model overlay</div>
+
+      <!-- Live Earth Imagery -->
+      <div style="display:flex;flex-direction:column;gap:10px;align-items:center;margin-top:10px">
+        <div style="position:relative;width:100%;max-width:800px">
+          <img id="earthBase"
+               src="https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image/jpeg&LAYERS=BlueMarble_ShadedRelief_Bathymetry&WIDTH=512&HEIGHT=256&CRS=EPSG:4326&BBOX=-180,-90,180,90"
+               alt="Earth live map"
+               style="width:100%;border-radius:12px;border:1px solid rgba(255,255,255,0.1);object-fit:cover;display:block;">
+          <div class="pill" style="position:absolute;left:8px;top:8px">Now</div>
+        </div>
+
+        <div style="position:relative;width:100%;max-width:800px">
+          <img id="earthPred"
+               src="https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image/jpeg&LAYERS=MODIS_Terra_CorrectedReflectance_TrueColor&WIDTH=512&HEIGHT=256&CRS=EPSG:4326&BBOX=-180,-90,180,90"
+               alt="Predicted Earth map"
+               style="width:100%;border-radius:12px;border:1px solid rgba(255,255,255,0.1);object-fit:cover;display:block;mix-blend-mode:multiply">
+          <div id="predTag" class="pill" style="position:absolute;right:8px;top:8px">Predicted</div>
+          <div id="predTint" style="position:absolute;inset:0;pointer-events:none;border-radius:12px"></div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <h4 style="margin:6px 0 8px">Details</h4>
+        <div class="muted-block" id="detailList">Run “Simulate Now” to generate the full predicted breakdown (temperature, biodiversity, sea-level drift, intervention effects).</div>
+      </div>
+
+      <canvas id="previewCanvas" width="520" height="160" style="margin-top:12px;border-radius:10px;background:transparent"></canvas>
+    </aside>
+  </main>
+
+  <!-- SYMBIOSPHERE PAGE -->
+  <section id="symbio" class="card hidden" style="margin-top:18px">
+    <h3 style="margin-top:0">SymbioSphere — Crowd Sensing</h3>
+    <div class="muted">Submit qualitative observations. No numeric fields required — choose categories and levels; upload a photo if available.</div>
+
+    <form id="obsForm" style="margin-top:12px;display:grid;gap:10px">
+      <div class="form-row">
+        <select id="obsType">
+          <option value="air">Air Quality / Smell</option>
+          <option value="water">Water Condition (stream, shore)</option>
+          <option value="species">Species Sighted (rare/common)</option>
+          <option value="noise">Noise / Light Pollution</option>
+          <option value="soil">Soil / Crop Health</option>
+          <option value="tree">Tree Planting / Green works</option>
+        </select>
+        <input id="obsLoc" type="text" placeholder="Location (city / locality)" />
+      </div>
+
+      <div class="form-row">
+        <select id="obsLevel">
+          <option value="excellent">Excellent / Healthy</option>
+          <option value="good">Good</option>
+          <option value="neutral">Neutral</option>
+          <option value="concern">Concern</option>
+          <option value="critical">Critical / Emergency</option>
+        </select>
+        <input id="obsPhoto" type="file" accept="image/*" />
+      </div>
+
+      <textarea id="obsNote" placeholder="Describe what you observed (optional)..."></textarea>
+
+      <div style="display:flex;gap:8px">
+        <button class="btn" id="submitObs">Submit Observation</button>
+        <button class="btn ghost" id="viewObs">View Live Feed</button>
+        <div style="margin-left:auto" class="muted-block">Local demo only — observations stored in browser.</div>
+      </div>
+    </form>
+
+    <div id="obsFeed" style="margin-top:12px;display:grid;gap:8px"></div>
+  </section>
+
+  <!-- NEXUS PAGE -->
+  <section id="nexus" class="card hidden" style="margin-top:18px">
+    <h3 style="margin-top:0">GAIA Nexus — Living Visualization</h3>
+    <div class="muted">This is the emotional/visual reflection of GAIA. Filaments, growth, decay and a timeline slider reflect the last prediction.</div>
+
+    <div style="display:flex;gap:12px;margin-top:12px;align-items:flex-start">
+      <div style="flex:1">
+        <canvas id="nexusCanvas" width="800" height="340" style="border-radius:10px;display:block;background:linear-gradient(180deg, rgba(2,8,14,0.6), rgba(3,12,20,0.6))"></canvas>
+      </div>
+      <div style="width:280px">
+        <div style="background:rgba(255,255,255,0.02);padding:10px;border-radius:10px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="pill" id="nexusMoodTag">Mood: —</div>
+            <div style="flex:1">
+              <div class="muted-block">Symbiosis index</div>
+              <div id="nexusIndex" style="font-weight:700;font-size:22px">—</div>
+            </div>
+          </div>
+          <div style="margin-top:8px">
+            <div class="muted-block">Timeline</div>
+            <input id="timeSlider" type="range" min="0" max="100" value="100" />
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="btn" id="recompute">Recompute Visuals</button>
+              <button class="btn ghost" id="exportPNG">Export PNG</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;background:rgba(255,255,255,0.02);padding:10px;border-radius:10px">
+          <div class="muted-block">Interpretation</div>
+          <div id="nexusText" style="margin-top:8px">Run a simulation to populate Nexus with a living structure built from the prediction.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">Demo build — client-only. For full realism you'd replace the preview images + add real satellite APIs & a simulation backend. © GAIA</div>
+</div>
+
+<script>
+/* ----------------- Routing ------------------ */
+const tabs = document.querySelectorAll('.tab[data-tab]');
+const sections = {
+  link: document.getElementById('link'),
+  symbio: document.getElementById('symbio'),
+  nexus: document.getElementById('nexus')
+};
+tabs.forEach(t=>{
+  t.addEventListener('click', ()=>{
+    tabs.forEach(x=>x.classList.remove('active')); t.classList.add('active');
+    const trg = t.dataset.tab;
+    // show main or the separate block
+    Object.keys(sections).forEach(k=>sections[k].classList.toggle('hidden', k!==trg));
+  });
+});
+document.getElementById('resetBtn').onclick = ()=>{
+  localStorage.removeItem('gaia_result');
+  localStorage.removeItem('gaia_obs');
+  alert('Demo: stored simulation + observations cleared.');
+  location.reload();
+};
+
+/* ------------- Subtabs (methods) -------------- */
+const subtabs = document.querySelectorAll('.subtab');
+let method = 'manual';
+subtabs.forEach(s=>{
+  s.addEventListener('click', ()=> {
+    subtabs.forEach(x=>x.classList.remove('active'));
+    s.classList.add('active');
+    method = s.dataset.method;
+    document.getElementById('lastMethod').textContent = 'Method: ' + (method==='manual'?'Manual':method==='preset'?'Preset':method==='mc'?'MonteCarlo':'AI Suggest');
+    // show/hide method blocks
+    ['manual','preset','mc','ai'].forEach(m=>{
+      const el = document.getElementById('method-'+m);
+      if(!el) return;
+      el.classList.toggle('hidden', m!==method);
+    });
+  });
+});
+
+/* ---------- Simulation inputs ---------- */
+const inputs = {
+  co2: document.getElementById('co2'),
+  def: document.getElementById('def'),
+  ren: document.getElementById('ren'),
+  pol: document.getElementById('pol'),
+  pop: document.getElementById('pop'),
+  // interventions
+  airweaver_chk: document.getElementById('airweaver'),
+  airweaver_int: document.getElementById('airweaver_int'),
+  algae_chk: document.getElementById('algae'),
+  algae_int: document.getElementById('algae_int'),
+  cryo_chk: document.getElementById('cryo'),
+  cryo_int: document.getElementById('cryo_int'),
+  biosynth_chk: document.getElementById('biosynth'),
+  biosynth_int: document.getElementById('biosynth_int'),
+  reforest_chk: document.getElementById('reforest'),
+  reforest_int: document.getElementById('reforest_int'),
+  ccapture_chk: document.getElementById('ccapture'),
+  ccapture_int: document.getElementById('ccapture_int'),
+  transport_chk: document.getElementById('transport'),
+  transport_int: document.getElementById('transport_int'),
+  urbangreen_chk: document.getElementById('urbangreen'),
+  urbangreen_int: document.getElementById('urbangreen_int'),
+};
+
+const simSummary = document.getElementById('simSummary');
+const symIndexEl = document.getElementById('symIndex');
+const miniGauge = document.getElementById('miniGauge').getContext('2d');
+
+/* ---------- utility: clamp & normalize ---------- */
+function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+function normalize(v,min,max){ if(max===min) return 0; return (v-min)/(max-min); }
+
+/* ---------- Predictive model (toy, deterministic combination) ---------- */
+/*
+  Strategy: Combine primary pressures and interventions into a single Symbiosis Index (0-100).
+  Higher index = better outcome.
+  We include the requested interventions and their intensities; each has a weight.
+*/
+function computeSymbiosis(vals){
+  // vals: object of base and interventions (0-100-ish)
+  // we'll compute contributions carefully.
+  // Pressure factors (higher is worse): co2, def, pop
+  // Positive factors: ren, pol (pollution control), interventions
+  const co2 = clamp(vals.co2,0,100);
+  const def = clamp(vals.def,0,100);
+  const pop = clamp(vals.pop, -20, 80); // pop change: negative = shrink, positive = growth
+  const ren = clamp(vals.ren,0,100);
+  const pol = clamp(vals.pol,0,100);
+
+  // intervention effective strengths (0-100)
+  const interventions = {
+    airweaver: vals.airweaver?clamp(vals.airweaver_int,0,100):0,
+    algae: vals.algae?clamp(vals.algae_int,0,100):0,
+    cryo: vals.cryo?clamp(vals.cryo_int,0,100):0,
+    biosynth: vals.biosynth?clamp(vals.biosynth_int,0,100):0,
+    reforest: vals.reforest?clamp(vals.reforest_int,0,100):0,
+    ccapture: vals.ccapture?clamp(vals.ccapture_int,0,100):0,
+    transport: vals.transport?clamp(vals.transport_int,0,100):0,
+    urbangreen: vals.urbangreen?clamp(vals.urbangreen_int,0,100):0
+  };
+
+  // weights (these are demo heuristics)
+  // pressures: CO2 weight 0.32, def 0.22, pop 0.1
+  // baseline positive: ren*0.28, pol*0.18
+  // interventions combined weight 0.6 (sum of weighted effectiveness)
+  const p_co2 = co2 * 0.32;
+  const p_def = def * 0.22;
+  const p_pop = (pop>0?pop:0) * 0.10; // growth increases pressure; shrink reduces it
+
+  const base_positive = ren * 0.28 + pol * 0.18;
+
+  // interventions effect: combine with diminishing returns
+  function eff(x, weight){
+    // simple diminishing returns curve: 100 -> weight*0.9, 50->weight*0.6 etc
+    return weight * (0.2 + 0.8 * Math.tanh(x/120 * 2.5)); // tuned for demo shape
+  }
+  const iv = interventions;
+  const interventionScore =
+    eff(iv.airweaver, 18) + eff(iv.algae, 12) + eff(iv.cryo, 10) +
+    eff(iv.biosynth, 10) + eff(iv.reforest, 24) + eff(iv.ccapture, 16) +
+    eff(iv.transport, 20) + eff(iv.urbangreen, 12); // total possible ~100-ish
+
+  // Now, compute a raw index
+  // Start from 50 baseline (mid-point): add base_positive*0.24, add interventionScore*0.5, subtract pressures
+  let raw = 50
+    + (base_positive * 0.24)
+    + (interventionScore * 0.5)
+    - (p_co2 * 0.35)
+    - (p_def * 0.28)
+    - (p_pop * 0.4);
+
+  // small penalty for very high CO2 or deforestation
+  if(co2 > 80) raw -= (co2-80)*0.35;
+  if(def > 70) raw -= (def-70)*0.25;
+
+  // clamp to 0..100
+  const index = Math.round(clamp(raw, 0, 100));
+
+  // simple derived metrics for display
+  const tempDrift = (co2/100)*2.5 - (interventionScore/200); // degrees C drift (toy)
+  const biodiversity = Math.round(50 + (index-50)*0.6); // 0..100
+  const seaLevel = (def/100)*0.15 + (co2/100)*0.1 - (iv.reforest?iv.reforest_int/100*0.02:0); // meters approx toy
+
+  return {
+    index, tempDrift: Number(tempDrift.toFixed(2)), biodiversity, seaLevel: Number(seaLevel.toFixed(3)),
+    interventionsApplied: interventions
+  };
+}
+
+/* ---------- Simulation UI wiring ---------- */
+function readInputs(){
+  return {
+    co2: +inputs.co2.value,
+    def: +inputs.def.value,
+    ren: +inputs.ren.value,
+    pol: +inputs.pol.value,
+    pop: +inputs.pop.value,
+    airweaver: inputs.airweaver_chk.checked,
+    airweaver_int: +inputs.airweaver_int.value,
+    algae: inputs.algae_chk.checked,
+    algae_int: +inputs.algae_int.value,
+    cryo: inputs.cryo_chk.checked,
+    cryo_int: +inputs.cryo_int.value,
+    biosynth: inputs.biosynth_chk.checked,
+    biosynth_int: +inputs.biosynth_int.value,
+    reforest: inputs.reforest_chk.checked,
+    reforest_int: +inputs.reforest_int.value,
+    ccapture: inputs.ccapture_chk.checked,
+    ccapture_int: +inputs.ccapture_int.value,
+    transport: inputs.transport_chk.checked,
+    transport_int: +inputs.transport_int.value,
+    urbangreen: inputs.urbangreen_chk.checked,
+    urbangreen_int: +inputs.urbangreen_int.value
+  };
+}
+
+function renderSummary(res){
+  simSummary.textContent = `Symbiosis ${res.index} — ΔT: ${res.tempDrift}°C · Biodiversity ${res.biodiversity} · Sea level +${res.seaLevel} m`;
+  // update right preview tint
+  const predTint = document.getElementById('predTint');
+  const hue = res.index > 65 ? 150 : res.index > 40 ? 45 : 0; // green/amber/red
+  const opacity = 0.18 + (80-res.index)/220;
+  predTint.style.background = `linear-gradient(180deg, hsla(${hue},80%,50%,${opacity}), hsla(${hue},60%,20%,${opacity*0.6}))`;
+  document.getElementById('predTag').textContent = `Predicted (index ${res.index})`;
+  document.getElementById('detailList').textContent =
+    `Predicted ΔT ${res.tempDrift}°C, Biodiversity ${res.biodiversity}/100, Sea-level +${res.seaLevel} m. Interventions: ` +
+    Object.entries(res.interventionsApplied).filter(([k,v])=>v>0).map(([k,v])=>`${k}(${v})`).join(', ') || 'none';
+  // mini gauge
+  drawMiniGauge(res.index);
+  // store
+  localStorage.setItem('gaia_result', JSON.stringify(res));
+  // update nexus
+  updateNexusFromResult(res);
+}
+
+document.getElementById('simulateBtn').onclick = ()=>{
+  // choose method behavior
+  if(method === 'preset'){
+    alert('Select a preset first (buttons).');
+    return;
+  } else if (method === 'mc'){
+    const runs = +document.getElementById('mcRuns').value || 40;
+    runMonteCarlo(runs);
+    return;
+  } else if (method === 'ai'){
+    applyAISuggestion();
+    return;
+  }
+  const vals = readInputs();
+  const res = computeSymbiosis(vals);
+  renderSummary(res);
+};
+
+/* ---------- Preset buttons ---------- */
+document.querySelectorAll('[data-preset]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const which = btn.dataset.preset;
+    if(which==='business'){
+      inputs.co2.value=65; inputs.def.value=50; inputs.ren.value=30; inputs.pol.value=30; inputs.pop.value=25;
+      // turn off most interventions
+      Object.keys(inputs).forEach(k=>{ if(k.endsWith('_chk')) inputs[k].checked=false; });
+    } else if(which==='greenrush'){
+      inputs.co2.value=40; inputs.def.value=25; inputs.ren.value=75; inputs.pol.value=70; inputs.pop.value=18;
+      inputs.reforest_chk.checked=true; inputs.reforest_int.value=60;
+      inputs.transport_chk.checked=true; inputs.transport_int.value=70;
+    } else if(which==='radical'){
+      inputs.co2.value=25; inputs.def.value=10; inputs.ren.value=85; inputs.pol.value=85; inputs.pop.value=5;
+      inputs.reforest_chk.checked=true; inputs.reforest_int.value=90;
+      inputs.algae_chk.checked=true; inputs.algae_int.value=80;
+      inputs.biosynth_chk.checked=true; inputs.biosynth_int.value=70;
+      inputs.ccapture_chk.checked=true; inputs.ccapture_int.value=70;
+    } else if(which==='tech-fix'){
+      inputs.co2.value=48; inputs.def.value=35; inputs.ren.value=50; inputs.pol.value=60; inputs.pop.value=20;
+      inputs.airweaver_chk.checked=true; inputs.airweaver_int.value=80;
+      inputs.cryo_chk.checked=true; inputs.cryo_int.value=60;
+      inputs.ccapture_chk.checked=true; inputs.ccapture_int.value=80;
+    }
+    alert('Preset applied: ' + which);
+  });
+});
+
+/* ---------- Monte Carlo ---------- */
+function runMonteCarlo(n){
+  const results=[];
+  for(let i=0;i<n;i++){
+    // random sample around current baseline
+    const base = readInputs();
+    const sample = Object.assign({}, base);
+    // jitter main pressures by up to +-25%
+    ['co2','def','ren','pol','pop'].forEach(k=>{
+      const jitter = (Math.random()*0.5 - 0.25); // -0.25..0.25
+      sample[k] = clamp(Math.round(sample[k] * (1 + jitter)), -20, 100);
+    });
+    // interventions: random 0/1 based on baseline checked and jitter intensity
+    ['airweaver','algae','cryo','biosynth','reforest','ccapture','transport','urbangreen'].forEach(k=>{
+      if(sample[k]){ // if checked
+        const baseInt = +sample[k+'_int'];
+        sample[k+'_int'] = clamp(Math.round(baseInt * (0.6 + Math.random()*0.9)), 0,100);
+      }else{
+        // occasional random deployment
+        if(Math.random()<0.08) sample[k+'_int'] = Math.round(Math.random()*60), sample[k]=true;
+      }
+    });
+    const r = computeSymbiosis(sample);
+    results.push(r.index);
+  }
+  // summarize
+  const avg = Math.round(results.reduce((a,b)=>a+b,0)/results.length);
+  const min = Math.min(...results), max = Math.max(...results);
+  alert(`MonteCarlo ${n} runs -> index avg:${avg}  min:${min}  max:${max}\nSaved average as current scenario.`);
+  // persist aggregate by creating a faux result from current inputs but with avg index shown
+  const base = readInputs();
+  const r = computeSymbiosis(base);
+  r.index = avg;
+  renderSummary(r);
+}
+
+/* ---------- AI Suggestion (simple heuristic) ---------- */
+function applyAISuggestion(){
+  // heuristic: prioritize renewables, transport, reforest and ccapture if co2 high; otherwise prioritize pollution controls
+  const base = readInputs();
+  if(base.co2 > 55){
+    inputs.ren.value = clamp(+inputs.ren.value + 25, 0, 100);
+    inputs.ccapture_chk.checked = true; inputs.ccapture_int.value = 60;
+    inputs.reforest_chk.checked = true; inputs.reforest_int.value = 45;
+    inputs.transport_chk.checked = true; inputs.transport_int.value = 50;
+  } else if(base.def > 50){
+    inputs.reforest_chk.checked = true; inputs.reforest_int.value = 70;
+    inputs.urbangreen_chk.checked = true; inputs.urbangreen_int.value = 40;
+  } else {
+    inputs.pol.value = clamp(+inputs.pol.value + 20,0,100);
+    inputs.urbangreen_chk.checked = true; inputs.urbangreen_int.value = 35;
+  }
+  alert('AI Suggestion applied (demo heuristics). Now run Simulate.');
+}
+
+/* ---------- Mini gauge drawing ---------- */
+function drawMiniGauge(idx){
+  const ctx = miniGauge;
+  const w=miniGauge.canvas.width, h=miniGauge.canvas.height;
+  ctx.clearRect(0,0,w,h);
+  // arc background
+  ctx.beginPath();
+  ctx.lineWidth=12;
+  ctx.strokeStyle='rgba(255,255,255,0.06)';
+  ctx.arc(w/2, h, w*0.35, Math.PI, 2*Math.PI, false);
+  ctx.stroke();
+  // value arc
+  const start = Math.PI, end = Math.PI + (idx/100)*Math.PI;
+  const hue = idx>65?150:idx>40?45:0;
+  ctx.beginPath();
+  ctx.strokeStyle = `hsla(${hue},80%,60%,0.95)`;
+  ctx.lineCap = 'round';
+  ctx.arc(w/2, h, w*0.35, start, end, false);
+  ctx.lineWidth=12; ctx.stroke();
+  // text
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.font='14px sans-serif';
+  ctx.fillText(idx + ' / 100', w/2 - 22, h-18);
+}
+
+/* ---------- Nexus visuals (organic filaments) ---------- */
+const nxCanvas = document.getElementById('nexusCanvas'), nxCtx = nxCanvas.getContext('2d');
+let nexusState = { index: null, hue:45, seed:Math.random()*1000, details: null };
+function updateNexusFromResult(res){
+  nexusState.index = res.index;
+  nexusState.hue = res.index > 65 ? 150 : res.index > 40 ? 45 : 0;
+  nexusState.details = res;
+  document.getElementById('nexusIndex').textContent = res.index;
+  document.getElementById('nexusMoodTag').textContent = res.index>65?'Harmonic':res.index>40?'Tense':'Stressed';
+  document.getElementById('nexusText').textContent = `ΔT ${res.tempDrift}°C · Biodiversity ${res.biodiversity}/100 · Sea +${res.seaLevel}m. Filaments visualize ecosystem stress.`;
+  drawNexus();
+}
+
+let nxTick = 0;
+function drawNexus(){
+  const w = nxCanvas.width, h = nxCanvas.height;
+  nxCtx.clearRect(0,0,w,h);
+  // base gradient
+  nxCtx.fillStyle = 'linear-gradient'; // fallback - we'll paint manually
+  const g = nxCtx.createLinearGradient(0,0,0,h);
+  g.addColorStop(0,'rgba(4,12,20,0.6)');
+  g.addColorStop(1,'rgba(2,6,10,0.6)');
+  nxCtx.fillStyle = g;
+  nxCtx.fillRect(0,0,w,h);
+
+  const chaos = nexusState.index===null?1.5:(nexusState.index>65?0.6:nexusState.index>40?1.2:2.8);
+  const hue = nexusState.hue;
+  // draw filaments: a set of bezier chains
+  const cols = Math.round(18 + (1/Math.max(1, chaos))*20);
+  for(let i=0;i<cols;i++){
+    const baseX = (i+0.5)/cols * w;
+    let x = baseX + 40*Math.sin((nxTick + i*20)/80);
+    let y = 20;
+    nxCtx.beginPath();
+    nxCtx.moveTo(x,y);
+    const segments = 6;
+    for(let s=0;s<segments;s++){
+      const cx = x + (Math.random()-0.5)*80*chaos + 20*Math.sin((nxTick + i*10 + s*5)/40);
+      const cy = y + (s+1) * (h/(segments+1)) + 10*Math.cos((nxTick + i*7 + s*11)/40);
+      const nx = baseX + (s+1)*(w/(segments+2) - w/(cols*segments)) + Math.sin((nxTick + s*i)/30)*60*chaos;
+      nxCtx.quadraticCurveTo(cx,cy,nx,cy+10);
+      x = nx; y = cy+10;
+    }
+    // stroke style
+    nxCtx.lineWidth = 0.8 + 1.6*(1 - (nexusState.index||50)/100);
+    nxCtx.strokeStyle = `hsla(${hue},80%,${45 + 20*Math.sin((nxTick+i)/30)}%,${0.35 + (0.7 - chaos/4)})`;
+    nxCtx.stroke();
+  }
+
+  // central bloom that grows if index high
+  const cx = w*0.75, cy = h*0.5;
+  const pulse = 20 + (nexusState.index? (nexusState.index/100)*60 : 30) * Math.abs(Math.sin(nxTick/40));
+  const g2 = nxCtx.createRadialGradient(cx,cy,pulse*0.1,cx,cy,pulse*3);
+  g2.addColorStop(0,`hsla(${hue},90%,60%,${0.22})`);
+  g2.addColorStop(1,'rgba(10,12,18,0)');
+  nxCtx.fillStyle = g2;
+  nxCtx.beginPath(); nxCtx.arc(cx,cy,pulse*3,0,Math.PI*2); nxCtx.fill();
+
+  nxTick++;
+  requestAnimationFrame(drawNexus);
+}
+
+/* ---------- Preview canvas (small) ---------- */
+const previewCanvas = document.getElementById('previewCanvas'), pctx = previewCanvas.getContext('2d');
+function drawPreview(){
+  const w = previewCanvas.width, h = previewCanvas.height;
+  pctx.clearRect(0,0,w,h);
+  // draw a simplified bar showing threats vs interventions
+  const raw = JSON.parse(localStorage.getItem('gaia_result') || 'null');
+  let idx = raw?raw.index:50;
+  // background gradient
+  const g = pctx.createLinearGradient(0,0,w,0);
+  g.addColorStop(0,'rgba(255,255,255,0.02)');
+  g.addColorStop(1,'rgba(255,255,255,0.01)');
+  pctx.fillStyle=g; pctx.fillRect(0,0,w,h);
+  // threat bar
+  const threat = 100 - idx;
+  pctx.fillStyle = `rgba(255,80,80,0.18)`;
+  pctx.fillRect(10,20,(threat/100)*(w-20),60);
+  // green bar
+  pctx.fillStyle = `rgba(30,200,110,0.18)`;
+  pctx.fillRect(10,20,((idx)/100)*(w-20),60);
+  // overlay text
+  pctx.fillStyle = 'rgba(255,255,255,0.9)'; pctx.font='12px sans-serif';
+  pctx.fillText('Threat vs Recovery (visual)', 12,12);
+  pctx.fillText('Index: ' + idx, 12, h-8);
+}
+setInterval(drawPreview, 800);
+
+/* ---------- Save scenario (simple) ---------- */
+document.getElementById('saveScenario').onclick = ()=>{
+  const vals = readInputs();
+  const name = prompt('Name this scenario (short):','My Scenario');
+  if(!name) return;
+  const stored = JSON.parse(localStorage.getItem('gaia_scenarios')||'[]');
+  stored.push({name, vals, created:Date.now()});
+  localStorage.setItem('gaia_scenarios', JSON.stringify(stored));
+  alert('Scenario saved locally.');
+};
+
+/* ---------- AI Suggestion button ---------- */
+document.getElementById('aiSuggest').addEventListener('click', applyAISuggestion);
+
+/* ---------- Monte Carlo run ---------- */
+document.getElementById('runMC').addEventListener('click', ()=>{
+  const runs = +document.getElementById('mcRuns').value || 40;
+  runMonteCarlo(runs);
+});
+
+/* ---------- SymbioSphere (rich input) ---------- */
+const obsForm = document.getElementById('obsForm');
+const obsFeed = document.getElementById('obsFeed');
+const obsKey = 'gaia_obs';
+function loadObs(){
+  const arr = JSON.parse(localStorage.getItem(obsKey) || '[]');
+  obsFeed.innerHTML = '';
+  arr.slice().reverse().forEach(o=>{
+    const card = document.createElement('div');
+    card.style.padding='10px'; card.style.borderRadius='8px'; card.style.background='rgba(255,255,255,0.02)';
+    card.innerHTML = `<div style="display:flex;gap:8px;align-items:center"><div style="min-width:6px;height:36px;background:${o.color};border-radius:4px"></div>
+      <div style="flex:1"><strong>${o.type} — ${o.loc}</strong><div class="muted-block">${o.level} · ${new Date(o.at).toLocaleString()}</div></div></div>
+      <div style="margin-top:8px">${o.note||''}</div>
+      ${o.photo?'<div style="margin-top:8px"><img src="'+o.photo+'" style="max-width:120px;border-radius:6px"/></div>':''}`;
+    obsFeed.appendChild(card);
+  });
+}
+loadObs();
+
+document.getElementById('submitObs').addEventListener('click', (e)=>{
+  e.preventDefault();
+  const type = document.getElementById('obsType').value;
+  const loc = document.getElementById('obsLoc').value || 'Unknown';
+  const level = document.getElementById('obsLevel').value;
+  const note = document.getElementById('obsNote').value;
+  const fileInput = document.getElementById('obsPhoto');
+  if (fileInput.files && fileInput.files[0]){
+    const reader = new FileReader();
+    reader.onload = function(ev){
+      saveObs({type,loc,level,note,photo:ev.target.result});
+    };
+    reader.readAsDataURL(fileInput.files[0]);
+  } else {
+    saveObs({type,loc,level,note});
+  }
+});
+function saveObs(obj){
+  const arr = JSON.parse(localStorage.getItem(obsKey) || '[]');
+  const color = obj.level==='excellent'?'#20e07a':obj.level==='good'?'#56c8ff':obj.level==='neutral'?'#ffd265':obj.level==='concern'?'#ff9f6b':'#ff6b6b';
+  arr.push(Object.assign({at:Date.now(), color}, obj));
+  localStorage.setItem(obsKey, JSON.stringify(arr));
+  loadObs();
+  alert('Observation stored locally. (Demo only)');
+}
+document.getElementById('viewObs').addEventListener('click', ()=>{ document.querySelector('.tab[data-tab="symbio"]').click(); });
+
+/* ---------- Export Nexus PNG ---------- */
+document.getElementById('exportPNG').addEventListener('click', ()=>{
+  const data = nxCanvas.toDataURL('image/png');
+  const a = document.createElement('a'); a.href=data; a.download='gaia_nexus.png'; a.click();
+});
+
+/* ---------- Load last result into UI ---------- */
+function loadLastResultToUI(){
+  const raw = localStorage.getItem('gaia_result');
+  if(!raw) return;
+  const r = JSON.parse(raw);
+  // we cannot invert exactly, but update some UI displays
+  document.getElementById('symIndex').textContent = r.index;
+  drawMiniGauge(r.index);
+  updateNexusFromResult(r);
+}
+loadLastResultToUI();
+
+/* initialize */
+  drawNexus(); // start nexus animation
+</script>
+
+<!-- GAIA Chatbot -->
+<div id="chatbot">
+  <div id="chat-window"></div>
+  <div id="chat-input-area">
+    <input id="chat-input" placeholder="Ask GAIA anything..." />
+    <button id="chat-send">Send</button>
+  </div>
+</div>
+
+<style>
+#chatbot{
+  position:fixed;bottom:10px;right:10px;width:300px;
+  background:rgba(6,15,25,0.92);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:14px;color:white;font-family:Inter,sans-serif;
+  display:flex;flex-direction:column;max-height:70vh;z-index:9999;
+}
+#chat-window{flex:1;overflow-y:auto;padding:8px;font-size:13px}
+#chat-input-area{display:flex}
+#chat-input{flex:1;padding:8px;border:0;border-radius:0 0 0 14px;background:#0a1a28;color:white}
+#chat-send{border:0;padding:8px 12px;border-radius:0 0 14px 0;background:#148eff;color:white;cursor:pointer}
+</style>
+
+<script>
+async function sendChat(msg){
+  // Try the real chat API first. If it fails (server down / CORS / file:// origin), fall back to a local demo responder.
+  try{
+    const res = await fetch("http://localhost:3000/api/chat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        messages:[
+          {role:"system",content:"You are GAIA, the AI consciousness that manages environmental data, simulations, and planetary health."},
+          {role:"user",content:msg}
+        ]
+      }),
+      // keep a short timeout on fetch via signal if available (optional)
+    });
+    if(!res.ok) throw new Error('Status ' + res.status);
+    const data = await res.json();
+    console.log("🌍 GAIA API response:", data); // optional: helps debug
+    const text = data.reply || "No response received.";
+    return text;
+  }catch(e){
+    // Log to console for debugging
+    console.error('Chat API request failed:', e);
+    // Local fallback responder (demo-only). Simulate a small latency to feel natural.
+    await new Promise(r=>setTimeout(r, 500));
+    const lower = (msg||'').toLowerCase();
+    // Helpful, local-aware replies
+    if(/symbiosis|index|score|status|gaia index/.test(lower)){
+      try{
+        const raw = JSON.parse(localStorage.getItem('gaia_result') || 'null');
+        const idx = raw && raw.index !== undefined ? raw.index : 'not set';
+        return `GAIA (demo offline): The current Symbiosis index is ${idx}. Run "Simulate Now" to update.`;
+      }catch(_){
+        return 'GAIA (demo offline): No simulation result available. Run "Simulate Now" to generate one.';
+      }
+    }
+    if(/simulate|run|simulation/.test(lower)){
+      return 'GAIA (demo offline): To run a local simulation, click the "Simulate Now" button. For presets try: Green Rush, Radical, Tech Fix.';
+    }
+    if(/hello|hi|hey|greetings/.test(lower)) return 'Hello — GAIA (demo offline). Ask about the current simulation, or run one with the "Simulate Now" button.';
+    if(/help|what can you do/.test(lower)) return 'GAIA (demo offline): I can report the current simulation index, suggest presets, or you can run a simulation locally. For full chat features, start the local chat server at http://localhost:3000.';
+    // Generic offline message
+    return 'GAIA (demo offline): I could not contact the chat API (see console). Try running the local chat server at http://localhost:3000 or run a simulation locally.';
+  }
+}
+
+const win = document.getElementById("chat-window");
+document.getElementById("chat-send").onclick = async ()=>{
+  const input = document.getElementById("chat-input");
+  const msg = input.value.trim();
+  if(!msg) return;
+  win.innerHTML += `<div><b>You:</b> ${msg}</div>`;
+  input.value="";
+  const reply = await sendChat(msg);
+  win.innerHTML += `<div style="color:#7ee"><b>GAIA:</b> ${reply}</div>`;
+  win.scrollTop = win.scrollHeight;
+};
+</script>
+</body>
+</html>
