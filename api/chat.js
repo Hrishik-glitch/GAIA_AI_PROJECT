@@ -4,6 +4,13 @@ import fs from "fs";
 import dotenv from "dotenv";
 import NodeCache from "node-cache";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
+);
+
 
 dotenv.config();
 
@@ -86,3 +93,9 @@ app.get("/api/resetMemory", (req, res) => {
 app.listen(3000, () =>
   console.log("✅ GAIA Gemini KB + Memory server running on http://localhost:3000")
 );
+
+await supabase.from("chat_logs").insert([
+  { role: "user", content: messages[messages.length - 1].content },
+  { role: "assistant", content: output }
+]);
+
