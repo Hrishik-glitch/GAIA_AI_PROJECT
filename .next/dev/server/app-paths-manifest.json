@@ -1,0 +1,10 @@
+{
+  "/about/page": "app/about/page.js",
+  "/api/gaialink/city/route": "app/api/gaialink/city/route.js",
+  "/api/symbiosphere/city/route": "app/api/symbiosphere/city/route.js",
+  "/eco-tracker/page": "app/eco-tracker/page.js",
+  "/gaia-link/page": "app/gaia-link/page.js",
+  "/nexus/page": "app/nexus/page.js",
+  "/page": "app/page.js",
+  "/symbiosphere/page": "app/symbiosphere/page.js"
+}

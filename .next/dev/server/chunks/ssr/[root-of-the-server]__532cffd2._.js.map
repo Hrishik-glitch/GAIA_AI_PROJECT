@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 10, "column": 0}, "map": {"version":3,"sources":["file:///D:/Projects/GAIA_AI_PROJECT/app/page.tsx"],"sourcesContent":["export default function HomePage() {\r\n  return (\r\n    <main style={{ padding: 40, color: 'white', background: '#05111a', height: '100vh' }}>\r\n      <h1>GAIA 2.0 — Next.js Migration</h1>\r\n      <p>Your Next.js environment is active.</p>\r\n    </main>\r\n  );\r\n}\r\n"],"names":[],"mappings":";;;;;;AAAe,SAAS;IACtB,qBACE,8OAAC;QAAK,OAAO;YAAE,SAAS;YAAI,OAAO;YAAS,YAAY;YAAW,QAAQ;QAAQ;;0BACjF,8OAAC;0BAAG;;;;;;0BACJ,8OAAC;0BAAE;;;;;;;;;;;;AAGT","debugId":null}}]
+}

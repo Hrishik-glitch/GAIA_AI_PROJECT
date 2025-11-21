@@ -28,7 +28,7 @@ try {
 
 // --- Gemini model setup ---
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
 
 // --- Main chat endpoint ---
 app.post("/api/chat", async (req, res) => {
