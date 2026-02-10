@@ -1,3 +1,5 @@
+//app/api/chat/route.ts
+
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
@@ -166,4 +168,15 @@ GAIA:
       { status: 500 }
     );
   }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    },
+  });
 }
