@@ -32,6 +32,11 @@ export default function Home() {
           </Link>
         </section>
 
+        {/* Embedded Presentation */}
+        <section style={{ textAlign: 'center', marginBottom: '50px' }}>
+          <iframe src="https://gamma.app/embed/59bcqcanzhk2885" style={{ width: '2000px', maxWidth: '100%', height: '450px' }} allow="fullscreen" title="GAIA 2.0"></iframe>
+        </section>
+
         {/* Three Layers Overview */}
         <section style={{ marginBottom: '40px' }}>
           <h2 style={{ textAlign: 'center', marginBottom: '30px' }}>The Three-Layer Architecture</h2>

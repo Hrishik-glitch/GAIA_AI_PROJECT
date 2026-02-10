@@ -19,6 +19,7 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
       </head>
       <body
+        suppressHydrationWarning={true}
         style={{
           margin: 0,
           fontFamily: 'Inter, sans-serif',
