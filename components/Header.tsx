@@ -22,7 +22,7 @@ export default function Header({ onTabChange }: { onTabChange: (tab: string) => 
       <div className="brand">
         <div className="logo" aria-hidden="true"></div>
         <div>
-          <h1>GAIA Link — Demo</h1>
+          <h1>GAIA 2.0</h1>
           <div className="muted">Simulation Hub · SymbioSphere · Nexus — simplified demo</div>
         </div>
       </div>
